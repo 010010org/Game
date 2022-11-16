@@ -45,10 +45,15 @@ class Player(pygame.sprite.Sprite):
 
     def update(self):
         self.movement()
+        self.gravity()
         self.animate()
         
+        
         self.rect.x += self.xChange
+        self.collideBlocks("x")
+
         self.rect.y += self.yChange
+        self.collideBlocks("y")
         
         self.xChange = 0
         self.yChange = 0
@@ -62,11 +67,14 @@ class Player(pygame.sprite.Sprite):
             self.xChange += cf.PLAYER_SPEED
             self.facing = "right"
         if keys[pygame.K_UP]:
-            self.yChange -= cf.PLAYER_SPEED
+            self.yChange -= cf.PLAYER_JUMP_SPEED
             self.facing = "up"
         if keys[pygame.K_DOWN]:
             self.yChange += cf.PLAYER_SPEED
             self.facing = "down"
+    
+    def gravity(self):
+        self.yChange += 2.5
     
     def animate(self):
         walkingAnimation = [
@@ -81,10 +89,8 @@ class Player(pygame.sprite.Sprite):
         ]
         if self.facing == "left":
             if self.xChange == 0:
-                print("stilstaand")
                 self.image = pygame.transform.flip(walkingAnimation[4], True, False)
             else:
-                print("bewegend")
                 self.image = pygame.transform.flip(walkingAnimation[math.floor(self.animationLoop)], True, False)
                 self.animationLoop += 0.2
                 if self.animationLoop >= len(walkingAnimation):
@@ -92,12 +98,65 @@ class Player(pygame.sprite.Sprite):
 
         if self.facing == "right":
             if self.xChange == 0:
-                print("stilstaand")
                 self.image = walkingAnimation[1]
             else:
-                print("bewegend")
                 self.image = walkingAnimation[math.floor(self.animationLoop)]
                 self.animationLoop += 0.2
                 if self.animationLoop >= len(walkingAnimation):
                     self.animationLoop = 1
+    
+    def collideBlocks(self, direction):
+        if direction == "x":
+            hits = pygame.sprite.spritecollide(self, self.game.blocks, False)
+            if hits:
+                if self.xChange > 0:
+                    self.rect.x = hits[0].rect.left - self.rect.width
+                if self.xChange < 0:
+                    self.rect.x = hits[0].rect.right
+        if direction == "y":
+            hits = pygame.sprite.spritecollide(self, self.game.blocks, False)
+            if hits:
+                if self.yChange > 0:
+                    self.rect.y = hits[0].rect.top - self.rect.height
+                if self.yChange < 0:
+                    self.rect.y = hits[0].rect.bottom
 
+
+class Block(pygame.sprite.Sprite):
+    def __init__(self, game, x, y):
+        self.game = game
+        self._layer = cf.BLOCK_LAYER
+        self.groups = self.game.allSprites, self.game.blocks
+        pygame.sprite.Sprite.__init__(self, self.groups)
+
+        self.x = x * cf.TILEWIDTH
+        self.y = y * cf.TILEHEIGHT
+        self.height = cf.TILEHEIGHT
+        self.width = cf.TILEWIDTH
+
+        self.image = pygame.Surface([self.width, self.height])
+        self.image.fill(cf.BLACK)
+
+        self.rect = self.image.get_rect()
+        self.rect.x = self.x
+        self.rect.y = self.y
+
+class collectable(pygame.sprite.Sprite):
+    def __init__(self, game, x, y):
+        self.game = game
+        self._layer = cf.COLLLECTABLE_LAYER
+        self.groups = self.game.allSprites
+        pygame.sprite.Sprite.__init__(self, self.groups)
+        
+        self.x = x * cf.TILEWIDTH
+        self.y = y * cf.TILEHEIGHT
+        self.height = cf.TILEHEIGHT
+        self.width = cf.TILEWIDTH
+
+        self.image = pygame.Surface([self.width, self.height])
+        self.image.fill(cf.GREEN)
+
+        self.rect = self.image.get_rect()
+        self.rect.x = self.x
+        self.rect.y = self.y
+        

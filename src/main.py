@@ -7,6 +7,7 @@ import os
 class Game:
     iconPath = os.path.join(os.getcwd(), "Game/sprites/icons")
     playerPath = os.path.join(os.getcwd(), "Game/sprites/Players")
+
     def __init__(self):
         pygame.init()
         self.screen = pygame.display.set_mode((cf.WIN_WIDTH, cf.WIN_HEIGHT))
@@ -25,9 +26,11 @@ class Game:
         for i, row in enumerate(cf.tilemap):
             for j, column in enumerate(row):
                 if column == "B":
-                    Block(self, j, i)
+                    sp.Block(self, j, i)
                 if column == "P":
                     sp.Player(self, j, i)
+                if column == "C":
+                    sp.collectable(self, j, i)
     
     def new(self):
         """a new game starts"""
@@ -75,24 +78,6 @@ class Game:
 
 
 
-class Block(pygame.sprite.Sprite):
-    def __init__(self, game, x, y):
-        self.game = game
-        self._layer = cf.BLOCK_LAYER
-        self.groups = self.game.allSprites, self.game.blocks
-        pygame.sprite.Sprite.__init__(self, self.groups)
-
-        self.x = x * cf.TILEWIDTH
-        self.y = y * cf.TILEHEIGHT
-        self.height = cf.TILEHEIGHT
-        self.width = cf.TILEWIDTH
-
-        self.image = pygame.Surface([self.width, self.height])
-        self.image.fill(cf.BLACK)
-
-        self.rect = self.image.get_rect()
-        self.rect.x = self.x
-        self.rect.y = self.y
 
 
 game = Game()
